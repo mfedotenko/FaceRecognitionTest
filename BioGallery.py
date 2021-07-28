@@ -5,31 +5,40 @@ class bioGallery():
     def __init__(self, mode="All"):
         self.lastNum = 0
         self.mode = mode
-        self.gallery = {}
-        self.savePath = "./output/bioGallery.pkl"
-
-    def getMode(self):
-        return self.mode
-
-    def getGallery(self):
-        return self.gallery
+        # gallery = {"persons": persons, "templates": templates}
+        # persons = {id: person}    templates = {id: descriptor}
+        self.gallery = {"persons": {}, "templates": {}}
+        self.galleryPath = "./output/bioGallery.save"
 
     def add(self, person, descriptor):
-        personDescriptors = self.gallery.get(person)
-        if personDescriptors is None: personDescriptors = []
-        personDescriptors.append({self.lastNum: descriptor})
-        self.gallery.update({person: personDescriptors})
+        persons = self.gallery.get("persons")
+        templates = self.gallery.get("templates")
+        persons.update({self.lastNum: person})
+        templates.update({self.lastNum: descriptor})
+        self.gallery.update({"persons": persons, "templates": templates})
         self.lastNum += 1
 
-    def adds(self, personStructs):
-        for personStruct in personStructs:
-            self.add(personStruct.person, personStruct.descriptor)
+    def adds(self, dataset):
+        for data in dataset:
+            self.add(data["person"], data["descriptor"])
 
-    def save(self):
-        with open(self.savePath, 'wb') as f:
+    def save(self, galleryPath):
+        if galleryPath is None: galleryPath = self.galleryPath
+        with open(galleryPath, 'wb') as f:
             pickle.dump(self.gallery, f, protocol=pickle.HIGHEST_PROTOCOL)
         f.close()
 
-    def load(self):
-        with open(self.savePath, 'rb') as f:
+    def load(self, galleryPath):
+        if galleryPath is None: galleryPath = self.galleryPath
+        with open(galleryPath, 'rb') as f:
             self.gallery = pickle.load(f)
+
+    def export(self):
+        samples = []
+        for person, value in self.gallery:
+            for id, descriptor in value:
+                samples.append({"id": id, "person": person, "descriptor": descriptor})
+        return samples
+
+    def getPersonById(self, id):
+        return [k for k, v in self.gallery.items() if id in v.keys()][0]

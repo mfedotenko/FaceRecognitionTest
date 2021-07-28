@@ -34,17 +34,17 @@ class BioInterface():
         descriptor2 = self.extract(image2)
         return self.bioEngine.match(descriptor1, descriptor2)
 
-    def enroll(self, personStruct):
-        imagePath = personStruct.get("imagePath")
+    def enroll(self, data):
+        imagePath = data.get("imagePath")
         descriptor = self.extract(imagePath)
         if descriptor is None: return -1
-        self.gallery.add(personStruct.get("person"), descriptor)
+        self.gallery.add(data.get("person"), descriptor)
         return 0
 
-    def enrolls(self, personStructs):
-        for i in tqdm(range(len(personStructs)), desc="Enrolls"):
-            personStruct = personStructs[i]
-            self.enroll(personStruct)
+    def enrolls(self, bioDataset):
+        for i in tqdm(range(len(bioDataset)), desc="Enrolls"):
+            data = bioDataset[i]
+            self.enroll(data)
         return 0
 
     def idenify(self):
@@ -67,8 +67,14 @@ class BioInterface():
         verified = True if matchResult.distance <= self.threshold else False
         return {"verified": verified, "distance": matchResult.distance, "similarity": matchResult.similarity}
 
-    def save(self):
-        self.gallery.save()
+    def save(self, galleryPath):
+        self.gallery.save(galleryPath)
 
-    def load(self):
-        self.gallery.load()
+    def load(self, galleryPath):
+        self.gallery.load(galleryPath)
+
+    def getGalery(self):
+        return self.gallery
+
+    def export(self):
+        return self.gallery.export()
