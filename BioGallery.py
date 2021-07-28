@@ -3,6 +3,7 @@ import pickle
 class bioGallery():
 
     def __init__(self, mode="All"):
+        self.lastNum = 0
         self.mode = mode
         self.gallery = {}
         self.savePath = "./output/bioGallery.pkl"
@@ -16,8 +17,9 @@ class bioGallery():
     def add(self, person, descriptor):
         personDescriptors = self.gallery.get(person)
         if personDescriptors is None: personDescriptors = []
-        personDescriptors.append(descriptor)
+        personDescriptors.append({self.lastNum: descriptor})
         self.gallery.update({person: personDescriptors})
+        self.lastNum += 1
 
     def adds(self, personStructs):
         for personStruct in personStructs:
