@@ -1,16 +1,22 @@
 import pickle
+
 import numpy
+
 import BioConstants as bconst
+import copy
+import os
 
 class bioGallery():
-
     def __init__(self, mode="All"):
-        self.lastNum = 0
         self.mode = mode
         # gallery = {"persons": persons, "descriptors": descriptors}
         # persons = {id: person}    descriptors = {id: descriptor}
-        self.gallery = {bconst.DESCRIPTOR_IDS: {}, bconst.DESCRIPTORS: {}}
-        self.galleryPath = "./output/bioGallery.save"
+        self.init()
+        self.galleryPath = bconst.GALLERY_PATH
+
+    def init(self):
+        self.gallery = {bconst.PERSONS: {}, bconst.DESCRIPTORS: {}}
+        self.lastNum = 0
 
     def add(self, person, descriptor):
         persons = self.gallery.get(bconst.PERSONS)
@@ -20,41 +26,32 @@ class bioGallery():
         self.gallery.update({bconst.PERSONS: persons, bconst.DESCRIPTORS: descriptors})
         self.lastNum += 1
 
-    def deleteAll(self):
-        self.gallery = {}
-        self.lastNum = 0
+    def isSave(self, galleryPath):
+        return os.path.exists(galleryPath)
 
     def save(self, galleryPath):
         if galleryPath is None: galleryPath = self.galleryPath
         with open(galleryPath, 'wb') as f:
             pickle.dump(self.gallery, f, protocol=pickle.HIGHEST_PROTOCOL)
-        f.close()
 
     def load(self, galleryPath):
         if galleryPath is None: galleryPath = self.galleryPath
         with open(galleryPath, 'rb') as f:
             self.gallery = pickle.load(f)
 
+    def copy(self):
+        return copy.deepcopy(self.gallery)
+
     def getGalleryAsArrays(self):
-        ids = persons = descriptors = []
-        for id, person in self.gallery[bconst.PERSONS].values():
+        ids = []
+        persons = []
+        descriptors = []
+        for id, person in self.gallery[bconst.PERSONS].items():
             ids.append(id)
             persons.append(person)
             descriptors.append(self.gallery[bconst.DESCRIPTORS][id])
-        samples = {bconst.DESCRIPTOR_IDS: ids, bconst.PERSONS: persons, bconst.DESCRIPTORS: descriptors}
-        return samples
+        return ids, persons, descriptors
 
     def getGalleryAsNumpyArrays(self):
-        samples = self.getGalleryAsArrays()
-        samples = {bconst.DESCRIPTOR_IDS: numpy.asarray(samples[bconst.DESCRIPTOR_IDS]), bconst.PERSONS: numpy.asarray(samples[bconst.PERSONS]), bconst.DESCRIPTORS: numpy.asarray(samples[bconst.DESCRIPTORS])}
-        return samples
-
-    def getGalleryAsArray(self):
-        samples = []
-        for id, person in self.gallery[bconst.PERSONS].values():
-            samples.append({bconst.DESCRIPTOR_ID: id, bconst.PERSON: person, bconst.DESCRIPTOR: self.gallery[bconst.DESCRIPTORS][id]})
-        return samples
-
-    def getPersonById(self, id):
-        # return [k for k, v in self.gallery.items() if id in v.keys()][0]
-        pass
+        ids, persons, descriptors = self.getGalleryAsArrays()
+        return numpy.asarray(ids), numpy.asarray(persons), numpy.asarray(descriptors)

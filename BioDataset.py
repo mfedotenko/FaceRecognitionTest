@@ -8,11 +8,14 @@ import BioConstants as bconst
 class BioDataset():
     def __init__(self, datasetPath):
         self.datasetPath = datasetPath
-        self.lastNum = 0
         # dataset = {"persons": persons, "images": images}
         # persons = {id: person}    images = {id: image}
-        self.dataset = {}
+        self.datasetInit()
         self.loadPersonsWithImagePaths()
+
+    def datasetInit(self):
+        self.dataset = {bconst.PERSONS: {}, bconst.IMAGES: {}}
+        self.lastNum = 0
 
     def getmageFromPath(self, path):
         return cv2.imread(path)
@@ -35,10 +38,6 @@ class BioDataset():
                     imagePaths.append(im)
         return imagePaths
 
-    def deleteAll(self):
-        self.dataset = {}
-        self.lastNum = 0
-
     def add(self, person, image):
         persons = self.dataset.get(bconst.PERSONS)
         images = self.dataset.get(bconst.IMAGES)
@@ -47,9 +46,9 @@ class BioDataset():
         self.dataset.update({bconst.PERSONS: persons, bconst.IMAGES: images})
         self.lastNum += 1
 
-    def loadPersonsWithImagePaths(self, datasetPath):
+    def loadPersonsWithImagePaths(self, datasetPath=None):
         if datasetPath is None: datasetPath = self.datasetPath
-        self.deleteAll()
+        self.datasetInit()
         imagePaths = self.getImagePaths(datasetPath)
         for i in tqdm(range(len(imagePaths)), desc="getPersonsWithImagePaths"):
             imagePath = imagePaths[i]

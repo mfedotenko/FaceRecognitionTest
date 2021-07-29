@@ -1,5 +1,6 @@
 import VisionLabs as vl
 import BioGallery as bg
+import BioConstants as bconst
 from tqdm import tqdm
 
 class BioInterface():
@@ -34,17 +35,20 @@ class BioInterface():
         descriptor2 = self.extract(image2)
         return self.bioEngine.match(descriptor1, descriptor2)
 
-    def enroll(self, data):
-        imagePath = data.get("imagePath")
-        descriptor = self.extract(imagePath)
+    def enroll(self, person, image):
+        descriptor = self.extract(image)
         if descriptor is None: return -1
-        self.gallery.add(data.get("person"), descriptor)
+        self.gallery.add(person, descriptor)
         return 0
 
     def enrolls(self, bioDataset):
-        for i in tqdm(range(len(bioDataset)), desc="Enrolls"):
-            data = bioDataset[i]
-            self.enroll(data)
+        dataset = bioDataset.dataset
+        persons = dataset[bconst.PERSONS]
+        images = dataset[bconst.IMAGES]
+        for id, person in tqdm(persons.items(), desc="Enrolls"):
+        #for i in tqdm(range(len(bioDataset)), desc="Enrolls"):
+            image = images[id]
+            self.enroll(person, image)
         return 0
 
     def idenify(self):
@@ -67,14 +71,20 @@ class BioInterface():
         verified = True if matchResult.distance <= self.threshold else False
         return {"verified": verified, "distance": matchResult.distance, "similarity": matchResult.similarity}
 
+    def isSave(self, galleryPath):
+        return self.gallery.isSave(galleryPath)
+
     def save(self, galleryPath):
         self.gallery.save(galleryPath)
 
     def load(self, galleryPath):
         self.gallery.load(galleryPath)
 
-    def getGalery(self):
-        return self.gallery
+    def copy(self, bioInterface):
+        self.gallery.gallery = bioInterface.gallery.copy()
 
-    def export(self):
-        return self.gallery.export()
+    def getGalleryAsArrays(self):
+        return self.gallery.getGalleryAsArrays()
+
+    def getGalleryAsNumpyArrays(self):
+        return self.gallery.getGalleryAsNumpyArrays()
