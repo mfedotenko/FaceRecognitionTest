@@ -3,12 +3,15 @@ import cv2
 import numpy
 import base64
 from tqdm import tqdm
+import BioConstants as bconst
 
 class BioDataset():
     def __init__(self, datasetPath):
         self.datasetPath = datasetPath
-        # dataset = [{"id": id, "person": person, "imagePath": imagePath}]
-        self.dataset = []
+        self.lastNum = 0
+        # dataset = {"persons": persons, "images": images}
+        # persons = {id: person}    images = {id: image}
+        self.dataset = {}
         self.loadPersonsWithImagePaths()
 
     def getmageFromPath(self, path):
@@ -32,13 +35,23 @@ class BioDataset():
                     imagePaths.append(im)
         return imagePaths
 
+    def deleteAll(self):
+        self.dataset = {}
+        self.lastNum = 0
+
+    def add(self, person, image):
+        persons = self.dataset.get(bconst.PERSONS)
+        images = self.dataset.get(bconst.IMAGES)
+        persons.update({self.lastNum: person})
+        images.update({self.lastNum: image})
+        self.dataset.update({bconst.PERSONS: persons, bconst.IMAGES: images})
+        self.lastNum += 1
+
     def loadPersonsWithImagePaths(self, datasetPath):
         if datasetPath is None: datasetPath = self.datasetPath
-        self.dataset = []
+        self.deleteAll()
         imagePaths = self.getImagePaths(datasetPath)
-        imageId = 0
         for i in tqdm(range(len(imagePaths)), desc="getPersonsWithImagePaths"):
             imagePath = imagePaths[i]
             person = imagePath.split('/')[-2]
-            self.dataset.append({"id": imageId, "person": person, "imagePath": imagePath})
-            imageId += 1
+            self.add(person, imagePath)
