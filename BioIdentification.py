@@ -12,7 +12,7 @@ class BioIdentification():
         fnirScores = []
         fnirRanks = []
         fnirOtherRanks = []
-        for probeId in tqdm(range(len(probeIds))):
+        for probeId in tqdm(range(len(probeIds)), desc='FPIR/FNIR type=' + isMatrix + ' mode=' + mode + ' L=' + str(L)):
             # получаем имя строки
             probePerson = probePersons[probeId]
             probeRow = matrix[probeId]
