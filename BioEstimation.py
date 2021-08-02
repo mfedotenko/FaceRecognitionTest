@@ -25,24 +25,36 @@ class BioEstimation():
             distanceMax = numpy.asarray(distances).max()
             self.reals = [bconst.DISTANCE_TRUE_VALUE if reals else distanceMax]
 
-    def VerificationCurves(self, isMatrix=bconst.SIMILARITY):
+    def VerificationCurves(self, isMatrix=bconst.SIMILARITY, filepath="", zoom=False, zoom_rates={'fnfp': 1.0, 'tp': 0.9, 'fp': 0.1}):
         bioVerification = bv.BioVerification()
-        bioVerification.getFPRTPR(self.bioProbes, isMatrix)
+        fpr, fnr, thresholds = bioVerification.getFPRFNR(self.bioProbes, isMatrix)
+        bioDraw = bd.BioDraw()
+        curveName = 'FRR/FAR Curve\n' + 'Type=' + isMatrix + ' Zoom=' + str(zoom)
+        filename = filepath + '/FARFRR_' + isMatrix + ('_zoom' if zoom else '') + '.png'
+        bioDraw.drawErrorsOfThresholdCurve(curveName, 'FAR', fpr, 'FRR', fnr, thresholds, filename, zoom, zoom_rates['fnfp'])
+        curveName = 'ROC Curve\n' + 'Type=' + isMatrix + ' Zoom=' + str(zoom)
+        filename = filepath + '/ROC_' + isMatrix + ('_zoom' if zoom else '') + '.png'
+        tpr = 1 - fnr
+        bioDraw.drawRocCurve(curveName, 'FAR', fpr, 'TAR', tpr, filename, zoom, zoom_rates['tp'], zoom_rates['fp'])
 
     def IdentificationCurves(self, isMatrix=bconst.SIMILARITY, mode="any", L=1, filepath="", zoom=False, zoom_rates={'fnfp': 1.0, 'tp': 0.9, 'fp': 0.1}):
         bioIdentification = bi.BioIdentification()
         fpir, fnir, thresholds = bioIdentification.getFPIRFNIR(self.bioProbes, isMatrix, mode, L)
         bioDraw = bd.BioDraw()
         curveName =  'FPIR/FNIR Curve\n' + 'Type=' + isMatrix + ' Mode=' + mode + ' L=' + str(L) + ' Zoom=' + str(zoom)
-        filename = filepath + '/FPIRFNIR_' + isMatrix + '_' + mode + '_' + str(L) + '.png'
+        filename = filepath + '/FPIRFNIR_' + isMatrix + '_' + mode + '_' + str(L) + ('_zoom' if zoom else '') + '.png'
         bioDraw.drawErrorsOfThresholdCurve(curveName, 'FPIR', fpir, 'FNIR', fnir, thresholds, filename, zoom, zoom_rates['fnfp'])
         curveName = 'ROC Curve\n' + 'Type=' + isMatrix + ' Mode=' + mode + ' L=' + str(L) + ' Zoom=' + str(zoom)
+        filename = filepath + '/ROC_' + isMatrix + '_' + mode + '_' + str(L) +  ('_zoom' if zoom else '') + '.png'
         tpir = 1 - fnir
         bioDraw.drawRocCurve(curveName, 'FPIR', fpir, 'TPIR', tpir, filename, zoom, zoom_rates['tp'], zoom_rates['fp'])
 
 bioEstimation = BioEstimation(bconst.PROBES_PATH)
 
-bioEstimation.VerificationCurves(isMatrix=bconst.DISTANCE)
+bioEstimation.VerificationCurves(isMatrix=bconst.SIMILARITY, filepath="./output")
+bioEstimation.VerificationCurves(isMatrix=bconst.SIMILARITY, filepath="./output", zoom=True, zoom_rates={'fnfp': 0.05, 'tp': 0.98, 'fp': 0.02})
+bioEstimation.VerificationCurves(isMatrix=bconst.DISTANCE, filepath="./output")
+bioEstimation.VerificationCurves(isMatrix=bconst.DISTANCE, filepath="./output", zoom=True, zoom_rates={'fnfp': 0.05, 'tp': 0.98, 'fp': 0.02})
 
 #Ls = [1, 2, 3, 5, 10, 50, 100]
 #for L in Ls:
