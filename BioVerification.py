@@ -1,4 +1,5 @@
 import BioConstants as bconst
+import BioUtils as bu
 
 import sklearn.metrics
 import numpy
@@ -12,13 +13,11 @@ class BioVerification():
         probeIds, probePersons, galleryIds, galleryPersons, reals, distances, similarity = bioProbes.get()
         if isMatrix == bconst.DISTANCE:
             matrix = distances
-            maxD = numpy.max(matrix)
-            pos = math.floor(maxD)
-            reals_new = (1 - reals) * pos
-            pos = 0
+            direct = False
+            pos = None
         else:
             matrix = similarity
-            reals_new = reals.astype(int)
+            direct = True
             pos = 1
         pairs = set()
         realList = []
@@ -29,15 +28,12 @@ class BioVerification():
                 if probeIds[i] == galleryIds[j]: continue
                 pair = frozenset({probeIds[i], galleryIds[j]})
                 if pair in pairs: continue
-                realList.append(reals_new[i][j])
+                realList.append(reals[i][j])
                 probeList.append(matrix[i][j])
                 pairs.add(pair)
         realList = numpy.asarray(realList)
         probeList = numpy.asarray(probeList)
-        fpr, tpr, thresholds = sklearn.metrics.roc_curve(realList, probeList, pos_label=pos)
-        if isMatrix == bconst.DISTANCE:
-            fpr = 1 - fpr
-            tpr = 1 - tpr
+        fpr, tpr, thresholds = bu.sklearn_metrics_roc_curve(realList, probeList, direct=direct, pos_label=pos)
         return fpr, tpr, thresholds
 
     def getFPRFNR(self, bioProbes, isMatrix=bconst.SIMILARITY):

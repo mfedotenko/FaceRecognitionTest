@@ -1,9 +1,10 @@
 import numpy
+import sklearn.metrics
 
 import BioProbes as bp
 import BioIdentification as bi
 import BioConstants as bconst
-import BioDraw as bd
+import BioPlotting as bd
 import BioVerification as bv
 
 class BioEstimation():
@@ -25,9 +26,11 @@ class BioEstimation():
             distanceMax = numpy.asarray(distances).max()
             self.reals = [bconst.DISTANCE_TRUE_VALUE if reals else distanceMax]
 
-    def VerificationCurves(self, isMatrix=bconst.SIMILARITY, filepath="", zoom=False, zoom_rates={'fnfp': 1.0, 'tp': 0.9, 'fp': 0.1}):
+    def VerificationCurves(self, isMatrix=bconst.SIMILARITY, filepath="", zoom=False, zoom_rates={'fnfp': 1.0, 'tp': 0.9, 'fp': 0.1, 'fn': 0.1}):
         bioVerification = bv.BioVerification()
+        # получение значений
         fpr, fnr, thresholds = bioVerification.getFPRFNR(self.bioProbes, isMatrix)
+        # построение графиков
         bioDraw = bd.BioDraw()
         curveName = 'FRR/FAR Curve\n' + 'Type=' + isMatrix + ' Zoom=' + str(zoom)
         filename = filepath + '/FARFRR_' + isMatrix + ('_zoom' if zoom else '') + '.png'
@@ -36,6 +39,9 @@ class BioEstimation():
         filename = filepath + '/ROC_' + isMatrix + ('_zoom' if zoom else '') + '.png'
         tpr = 1 - fnr
         bioDraw.drawRocCurve(curveName, 'FAR', fpr, 'TAR', tpr, filename, zoom, zoom_rates['tp'], zoom_rates['fp'])
+        curveName = 'DET Curve\n' + 'Type=' + isMatrix + ' Zoom=' + str(zoom)
+        filename = filepath + '/DET_' + isMatrix + ('_zoom' if zoom else '') + '.png'
+        bioDraw.drawDetCurve(curveName, 'FAR', fpr, 'FRR', fnr, filename, zoom, zoom_rates['fp'], zoom_rates['fn'])
 
     def IdentificationCurves(self, isMatrix=bconst.SIMILARITY, mode="any", L=1, filepath="", zoom=False, zoom_rates={'fnfp': 1.0, 'tp': 0.9, 'fp': 0.1}):
         bioIdentification = bi.BioIdentification()
@@ -52,9 +58,9 @@ class BioEstimation():
 bioEstimation = BioEstimation(bconst.PROBES_PATH)
 
 bioEstimation.VerificationCurves(isMatrix=bconst.SIMILARITY, filepath="./output")
-bioEstimation.VerificationCurves(isMatrix=bconst.SIMILARITY, filepath="./output", zoom=True, zoom_rates={'fnfp': 0.05, 'tp': 0.98, 'fp': 0.02})
+bioEstimation.VerificationCurves(isMatrix=bconst.SIMILARITY, filepath="./output", zoom=True, zoom_rates={'fnfp': 0.05, 'tp': 0.98, 'fp': 0.02, 'fn': 0.02})
 bioEstimation.VerificationCurves(isMatrix=bconst.DISTANCE, filepath="./output")
-bioEstimation.VerificationCurves(isMatrix=bconst.DISTANCE, filepath="./output", zoom=True, zoom_rates={'fnfp': 0.05, 'tp': 0.98, 'fp': 0.02})
+bioEstimation.VerificationCurves(isMatrix=bconst.DISTANCE, filepath="./output", zoom=True, zoom_rates={'fnfp': 0.05, 'tp': 0.98, 'fp': 0.02, 'fn': 0.02})
 
 #Ls = [1, 2, 3, 5, 10, 50, 100]
 #for L in Ls:

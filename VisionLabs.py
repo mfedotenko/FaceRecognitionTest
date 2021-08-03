@@ -1,6 +1,7 @@
 import FaceEngine as fe
 from tqdm import tqdm
 import numpy
+import BioConstants as bconst
 
 lunasdk_path = "../lunasdk/"
 data_path = lunasdk_path + "data/"
@@ -27,6 +28,7 @@ class Luna():
         self.detector = self.faceEngine.createDetector(fe.FACE_DET_V3)
         self.warper = self.faceEngine.createWarper()
         self.extractor = self.faceEngine.createExtractor()
+        self.matcher = self.faceEngine.createMatcher()
 
     def imageConvert(self, imagePath):
         image = fe.Image()
@@ -56,13 +58,12 @@ class Luna():
         return vector
 
     def match(self, descriptor1, descriptor2):
-        matcher = self.faceEngine.createMatcher()
         desc1 = self.faceEngine.createDescriptor()
         desc2 = self.faceEngine.createDescriptor()
-        desc1.load(descriptor1)
-        desc2.load(descriptor2)
-        err, value = matcher.match(descriptor1, descriptor2)
-        return {"distance": value.distance, "similarity": value.similarity}
+        desc1.load(descriptor1, len(descriptor1))
+        desc2.load(descriptor2, len(descriptor2))
+        err, value = self.matcher.match(desc1, desc2)
+        return value.distance, value.similarity
 
     def runExtract(self, images):
         extractor = self.faceEngine.createExtractor()
